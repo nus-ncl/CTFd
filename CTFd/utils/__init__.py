@@ -39,6 +39,12 @@ from datafreeze.format.fjson import JSONSerializer, JSONEncoder
 
 from distutils.version import StrictVersion
 
+import argparse
+
+parser = argparse.ArgumentParser(description='CTFd at NCL')
+parser.add_argument('-n','--ncl-sio-url', help='base url for ncl services-in-one (e.g. http://dev.ncl.sg:80)', required=True)
+args = vars(parser.parse_args())
+
 if six.PY2:
     text_type = unicode
     binary_type = str
@@ -224,6 +230,10 @@ def ctf_logo():
 def ctf_theme():
     theme = get_config('ctf_theme')
     return theme if theme else ''
+
+
+def ncl_sio_url():
+    return args['ncl_sio_url']
 
 
 @cache.memoize()

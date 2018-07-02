@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import requests
 import time
 
 from flask import current_app as app, render_template, request, redirect, url_for, session, Blueprint
@@ -76,7 +77,7 @@ def confirm_user(data=None):
                 return redirect(url_for('views.profile'))
             return render_template('confirm.html', team=team)
 
-
+"""
 @auth.route('/reset_password', methods=['POST', 'GET'])
 @auth.route('/reset_password/<data>', methods=['POST', 'GET'])
 @ratelimit(method="POST", limit=10, interval=60)
@@ -207,7 +208,7 @@ def register():
         return redirect(url_for('challenges.challenges_view'))
     else:
         return render_template('register.html')
-
+"""
 
 @auth.route('/login', methods=['POST', 'GET'])
 @ratelimit(method="POST", limit=10, interval=5)
@@ -215,52 +216,95 @@ def login():
     logger = logging.getLogger('logins')
     if request.method == 'POST':
         errors = []
-        name = request.form['name']
+        name = request.form['name'].strip()
+        password = request.form['password']
 
-        # Check if the user submitted an email address or a team name
-        if utils.check_email_format(name) is True:
+        # Check if email or password is empty
+        if not name or not password:
+            errors.append("Please enter your email and password")
+            db.session.close()
+            return render_template('login.html', errors=errors)
+
+        # Check if the user submitted a valid email address
+        if utils.check_email_format(name) is False:
+            errors.append("Your email is not in a valid format")
+            db.session.close()
+            return render_template('login.html', errors=errors)
+
+        # Send POST request to NCL SIO authentication API
+        base64creds = base64.b64encode(name + ':' + password)
+        headers = {'Authorization': 'Basic ' + base64creds}
+        sio_url = utils.ncl_sio_url()
+
+        try:
+            r = requests.post(sio_url + '/authentications', headers=headers, timeout=30)
+        except requests.exceptions.RequestException as e:
+            logger.warn("[{date}] {ip} - error connecting to SIO authentication service: {exception}".format(
+                date=time.strftime("%m/%d/%Y %X"),
+                ip=utils.get_ip(),
+                exception=e
+            ))
+            errors.append("There is a problem with your login request. Please contact the website administrator")
+            db.session.close()
+            return render_template('login.html', errors=errors)
+
+        if r.status_code == 200:
+            # Successful login
             team = Teams.query.filter_by(email=name).first()
-        else:
-            team = Teams.query.filter_by(name=name).first()
 
-        if team:
-            if team and bcrypt_sha256.verify(request.form['password'], team.password):
-                try:
-                    session.regenerate()  # NO SESSION FIXATION FOR YOU
-                except:
-                    pass  # TODO: Some session objects don't implement regenerate :(
-                session['username'] = team.name
-                session['id'] = team.id
-                session['admin'] = team.admin
-                session['nonce'] = utils.sha512(os.urandom(10))
-                db.session.close()
+            # Add to DB if it does not exist
+            if not team:
+                team = Teams(name.lower(), name.lower(), "unused_password")
+                db.session.add(team)
+                db.session.commit()
+                db.session.flush()
+            
+            # Take info from DB
+            session['username'] = team.name
+            session['id'] = team.id
+            session['admin'] = team.admin
+            session['nonce'] = utils.sha512(os.urandom(10))
+            db.session.close()
 
-                logger.warn("[{date}] {ip} - {username} logged in".format(
-                    date=time.strftime("%m/%d/%Y %X"),
-                    ip=utils.get_ip(),
-                    username=session['username'].encode('utf-8')
-                ))
+            logger.warn("[{date}] {ip} - {username} logged in".format(
+                date=time.strftime("%m/%d/%Y %X"),
+                ip=utils.get_ip(),
+                username=session['username'].encode('utf-8')
+            ))
 
-                if request.args.get('next') and utils.is_safe_url(request.args.get('next')):
-                    return redirect(request.args.get('next'))
-                return redirect(url_for('challenges.challenges_view'))
+            if request.args.get('next') and utils.is_safe_url(request.args.get('next')):
+                return redirect(request.args.get('next'))
+            return redirect(url_for('challenges.challenges_view'))
 
-            else:  # This user exists but the password is wrong
-                logger.warn("[{date}] {ip} - submitted invalid password for {username}".format(
-                    date=time.strftime("%m/%d/%Y %X"),
-                    ip=utils.get_ip(),
-                    username=team.name.encode('utf-8')
-                ))
-                errors.append("Your username or password is incorrect")
-                db.session.close()
-                return render_template('login.html', errors=errors)
-
-        else:  # This user just doesn't exist
-            logger.warn("[{date}] {ip} - submitted invalid account information".format(
+        elif r.status_code == 404:
+            # This user does not exist
+            logger.warn("[{date}] {ip} - submitted invalid user email".format(
                 date=time.strftime("%m/%d/%Y %X"),
                 ip=utils.get_ip()
             ))
-            errors.append("Your username or password is incorrect")
+            errors.append("Your email or password is incorrect")
+            db.session.close()
+            return render_template('login.html', errors=errors)
+
+        elif r.status_code == 500:
+            # This user exists but the password is wrong
+            logger.warn("[{date}] {ip} - submitted invalid password for {username}".format(
+                date=time.strftime("%m/%d/%Y %X"),
+                ip=utils.get_ip(),
+                username=name.encode('utf-8')
+            ))
+            errors.append("Your email or password is incorrect")
+            db.session.close()
+            return render_template('login.html', errors=errors)
+
+        else:
+            # Unknown response status code
+            logger.warn("[{date}] {ip} - unknown response status code: {status}".format(
+                date=time.strftime("%m/%d/%Y %X"),
+                ip=utils.get_ip(),
+                status=str(r.status_code)
+            ))
+            errors.append("Unknown login error. Please contact the website administrator")
             db.session.close()
             return render_template('login.html', errors=errors)
 
