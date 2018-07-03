@@ -77,6 +77,7 @@ def confirm_user(data=None):
                 return redirect(url_for('views.profile'))
             return render_template('confirm.html', team=team)
 
+# User registration and password reset is handled by NCL
 """
 @auth.route('/reset_password', methods=['POST', 'GET'])
 @auth.route('/reset_password/<data>', methods=['POST', 'GET'])

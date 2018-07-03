@@ -9,9 +9,9 @@ from passlib.hash import bcrypt_sha256
 from CTFd.models import db, Teams, Solves, Awards, Files, Pages
 from CTFd.utils import cache, markdown
 from CTFd import utils
+from CTFd.plugins import bypass_csrf_protection
 
 views = Blueprint('views', __name__)
-
 
 @views.route('/setup', methods=['GET', 'POST'])
 def setup():
@@ -102,6 +102,8 @@ def setup():
         return render_template('setup.html', nonce=session.get('nonce'))
     return redirect(url_for('views.static_html'))
 
+# For deployment scripts to work, allow POST to /setup without nonce
+app.view_functions['views.setup'] = bypass_csrf_protection(setup)
 
 # Custom CSS handler
 @views.route('/static/user.css')
@@ -233,8 +235,8 @@ def profile():
             emails = Teams.query.filter_by(email=email).first()
             valid_email = utils.check_email_format(email)
 
-            if utils.check_email_format(name) is True:
-                errors.append('Team name cannot be an email address')
+            if utils.check_email_format(name) is True and name.lower() != email.lower():
+                errors.append('Team name cannot be another email address')
 
             if ('password' in request.form.keys() and not len(request.form['password']) == 0) and \
                     (not bcrypt_sha256.verify(request.form.get('confirm').strip(), user.password)):
@@ -259,6 +261,8 @@ def profile():
                     if not utils.get_config('prevent_name_change'):
                         team.name = name
                         session['username'] = team.name
+                # Prevent changing of email, password, and other info
+                """
                 if team.email != email.lower():
                     team.email = email.lower()
                     if utils.get_config('verify_emails'):
@@ -269,6 +273,7 @@ def profile():
                 team.website = website
                 team.affiliation = affiliation
                 team.country = country
+                """
                 db.session.commit()
                 db.session.close()
                 return redirect(url_for('views.profile'))
