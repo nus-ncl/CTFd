@@ -12,7 +12,13 @@ uwsgi --plugin python -s /tmp/uwsgi1.sock -w 'CTFd:create_app()' --chmod-socket=
 
 ## Changes made by [Ong Heng Le](https://github.com/initialshl)
 
-https://github.com/nus-ncl/CTFd/commit/d3979e74bc96f412388de892d29d79977a1e6f04
+3 July 2018 : af37fec42bbe34aa2825688aaf40dc1cb4fc6a89
+
+- "Register"/"Forgot Password" opens a new tab in NCL
+- Users can change only their name in their profile page
+- Initial CTFd setup can now be done using deployment scripts
+
+2 July 2018 : d3979e74bc96f412388de892d29d79977a1e6f04
 
 - Login using NCL SIO authentication API
 - Disabled user registration
