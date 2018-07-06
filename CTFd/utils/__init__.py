@@ -42,7 +42,8 @@ from distutils.version import StrictVersion
 import argparse
 
 parser = argparse.ArgumentParser(description='CTFd at NCL')
-parser.add_argument('-n','--ncl-sio-url', help='base url for ncl services-in-one (e.g. http://dev.ncl.sg:80)', required=True)
+parser.add_argument('-s','--ncl-sio-url', help='base url for ncl services-in-one (e.g. http://172.18.178.14:8080)', required=True)
+parser.add_argument('-t','--ncl-team-name', help='name of ncl team who is allowed to join this CTF (e.g. ncltest01)', required=True)
 args = vars(parser.parse_args())
 
 if six.PY2:
@@ -232,8 +233,13 @@ def ctf_theme():
     return theme if theme else ''
 
 
+@cache.memoize()
 def ncl_sio_url():
     return args['ncl_sio_url']
+
+@cache.memoize()
+def ncl_team_name():
+    return args['ncl_team_name']
 
 
 @cache.memoize()

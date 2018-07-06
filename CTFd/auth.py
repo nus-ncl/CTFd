@@ -249,8 +249,55 @@ def login():
             db.session.close()
             return render_template('login.html', errors=errors)
 
-        if r.status_code == 200:
-            # Successful login
+        if r.status_code == 200:    # Successful login
+            # Check if this user has permission to login (i.e. is in this CTF NCL team)
+            ncl_team_name = utils.ncl_team_name()
+            is_user_in_ncl_team = False
+            user_id = r.json()['id']
+
+            # Send GET request to NCL SIO teams API
+            try:
+                teams_r = requests.get(sio_url + '/teams?name=' + ncl_team_name, timeout=30)
+            except requests.exceptions.RequestException as teams_re:
+                logger.warn("[{date}] {ip} - error connecting to SIO teams service: {exception}".format(
+                    date=time.strftime("%m/%d/%Y %X"),
+                    ip=utils.get_ip(),
+                    exception=teams_re
+                ))
+                errors.append("There is a problem with connecting to login service. Please contact the website administrator")
+                db.session.close()
+                return render_template('login.html', errors=errors)
+
+            if teams_r.status_code == 200:  # teams GET success
+                team_members = teams_r.json()['members']
+                for member in team_members:
+                    if member['userId'] == user_id:
+                        is_user_in_ncl_team = True
+                        break
+            else:   # teams GET failed
+                logger.warn("[{date}] {ip} - invalid response status code: {status}".format(
+                    date=time.strftime("%m/%d/%Y %X"),
+                    ip=utils.get_ip(),
+                    status=str(teams_r.status_code)
+                ))
+                errors.append("Unknown response from login service. Please contact the website administrator")
+                db.session.close()
+                return render_template('login.html', errors=errors)
+
+            if not is_user_in_ncl_team:
+                # User is not part of NCL team, deny login!
+                logger.warn("[{date}] {ip} - not in this CTF NCL team for {username}".format(
+                    date=time.strftime("%m/%d/%Y %X"),
+                    ip=utils.get_ip(),
+                    username=name.encode('utf-8')
+                ))
+                errors.append("You do not have permissions to login to this site")
+                db.session.close()
+                return render_template('login.html', errors=errors)
+
+            # User is now allowed to login
+
+            # Try to get info from DB
             team = Teams.query.filter_by(email=name).first()
 
             # Add to DB if it does not exist
@@ -260,7 +307,7 @@ def login():
                 db.session.commit()
                 db.session.flush()
             
-            # Take info from DB
+            # Get info from DB
             session['username'] = team.name
             session['id'] = team.id
             session['admin'] = team.admin
@@ -277,8 +324,7 @@ def login():
                 return redirect(request.args.get('next'))
             return redirect(url_for('challenges.challenges_view'))
 
-        elif r.status_code == 404:
-            # This user does not exist
+        elif r.status_code == 404:  # This user does not exist
             logger.warn("[{date}] {ip} - submitted invalid user email".format(
                 date=time.strftime("%m/%d/%Y %X"),
                 ip=utils.get_ip()
@@ -287,8 +333,7 @@ def login():
             db.session.close()
             return render_template('login.html', errors=errors)
 
-        elif r.status_code == 500:
-            # This user exists but the password is wrong
+        elif r.status_code == 500:  # This user exists but the password is wrong
             logger.warn("[{date}] {ip} - submitted invalid password for {username}".format(
                 date=time.strftime("%m/%d/%Y %X"),
                 ip=utils.get_ip(),
@@ -298,8 +343,7 @@ def login():
             db.session.close()
             return render_template('login.html', errors=errors)
 
-        else:
-            # Unknown response status code
+        else:   # Unknown response status code
             logger.warn("[{date}] {ip} - unknown response status code: {status}".format(
                 date=time.strftime("%m/%d/%Y %X"),
                 ip=utils.get_ip(),

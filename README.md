@@ -4,13 +4,20 @@
 
 **WORK-IN-PROGRESS**
 
-CTFd now takes in an additional argument --ncl-sio-url for NCL SIO URL
+CTFd now takes in an additional arguments 
+
+--ncl-sio-url for NCL SIO URL
+--ncl-team-name for name of the NCL Team whose members are allowed to login
 
 ```
-uwsgi --plugin python -s /tmp/uwsgi1.sock -w 'CTFd:create_app()' --chmod-socket=666 --pidfile /tmp/ctfd1.pid --pyargv '--ncl-sio-url http://dev.ncl.sg:8888'
+uwsgi --plugin python -s /tmp/uwsgi1.sock -w 'CTFd:create_app()' --chmod-socket=666 --pidfile /tmp/ctfd1.pid --pyargv '--ncl-sio-url http://172.18.178.14:8080 --ncl-team-name ncltest01'
 ```
 
 ## Changes made by [Ong Heng Le](https://github.com/initialshl)
+
+6 July 2018 : TBD
+
+- Login now checks that the user is part of the specified NCL Team
 
 3 July 2018 : af37fec42bbe34aa2825688aaf40dc1cb4fc6a89
 
