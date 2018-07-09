@@ -6,11 +6,7 @@
 {% block content %}
 <div class="jumbotron">
 	<div class="container">
-		<h1>Teams
-			<span class="create-team" role="button" data-toggle="tooltip" title="Create Team">
-				<i class="btn-fa fas fa-plus-circle"></i>
-			</span>
-		</h1>
+		<h1>Teams</h1>
 	</div>
 </div>
 
@@ -61,23 +57,23 @@
 					<div class="form-group">
 						<label for="email">Email</label>
 						<input type="email" class="form-control" name="email" id="email"
-							   placeholder="Enter new email" required>
+							   placeholder="Enter new email" required readonly="readonly">
 					</div>
-					<div class="form-group">
+					<div class="form-group d-none">
 						<label for="password">Password</label>
 						<input type="password" class="form-control" name="password" id="password"/>
 					</div>
-					<div class="form-group">
+					<div class="form-group d-none">
 						<label for="website">Website</label>
 						<input type="text" class="form-control" name="website" id="website"
 							   placeholder="Enter website">
 					</div>
-					<div class="form-group">
+					<div class="form-group d-none">
 						<label for="affiliation">Affiliation</label>
 						<input type="text" class="form-control" name="affiliation" id="affiliation"
 							   placeholder="Enter affiliation">
 					</div>
-					<div class="form-group">
+					<div class="form-group d-none">
 						<label for="affiliation">Country</label>
 						<input type="text" class="form-control" name="country" id="country"
 							   placeholder="Enter country">

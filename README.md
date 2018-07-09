@@ -15,6 +15,12 @@ uwsgi --plugin python -s /tmp/uwsgi1.sock -w 'CTFd:create_app()' --chmod-socket=
 
 ## Changes made by [Ong Heng Le](https://github.com/initialshl)
 
+9 July 2018 : TBD
+
+- Removed "Register" and "Forgot Password" buttons
+- Admin can no longer change user's email and unused credentials
+- Admin can no longer create new teams from admin panel
+
 6 July 2018 : https://github.com/nus-ncl/CTFd/commit/b8922ed92f80dcf2245ca546366999b886331aae
 
 - Login now checks that the user is part of the specified NCL Team

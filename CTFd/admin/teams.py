@@ -46,7 +46,7 @@ def admin_teams_view(page):
     pages = int(count / results_per_page) + (count % results_per_page > 0)
     return render_template('admin/teams.html', teams=teams, pages=pages, curr_page=page)
 
-
+"""
 @admin_teams.route('/admin/team/new', methods=['POST'])
 @admins_only
 def admin_create_team():
@@ -104,7 +104,7 @@ def admin_create_team():
     db.session.commit()
     db.session.close()
     return jsonify({'data': ['success']})
-
+"""
 
 @admin_teams.route('/admin/team/<int:teamid>', methods=['GET', 'POST'])
 @admins_only
@@ -149,8 +149,8 @@ def admin_team(teamid):
         if name_used and int(name_used.id) != int(teamid):
             errors.append('That name is taken')
 
-        if utils.check_email_format(name) is True:
-            errors.append('Team name cannot be an email address')
+        if utils.check_email_format(name) is True and name.lower() != email.lower():
+            errors.append('Team name cannot be another email address')
 
         email_used = Teams.query.filter(Teams.email == email).first()
         if email_used and int(email_used.id) != int(teamid):
@@ -164,6 +164,7 @@ def admin_team(teamid):
             return jsonify({'data': errors})
         else:
             user.name = name
+            """
             if email:
                 user.email = email
             if password:
@@ -171,6 +172,7 @@ def admin_team(teamid):
             user.website = website
             user.affiliation = affiliation
             user.country = country
+            """
             user.admin = admin_user
             user.verified = verified
             user.banned = hidden
