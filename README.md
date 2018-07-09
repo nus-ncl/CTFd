@@ -15,7 +15,7 @@ uwsgi --plugin python -s /tmp/uwsgi1.sock -w 'CTFd:create_app()' --chmod-socket=
 
 ## Changes made by [Ong Heng Le](https://github.com/initialshl)
 
-9 July 2018 : TBD
+9 July 2018 : https://github.com/nus-ncl/CTFd/commit/be3d1628e56593581e2a4609addf98e89722eaad
 
 - Removed "Register" and "Forgot Password" buttons
 - Admin can no longer change user's email and unused credentials
