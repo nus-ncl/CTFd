@@ -1,6 +1,6 @@
 [Original CTFd README](https://github.com/CTFd/CTFd/blob/master/README.md)
 
-[Deployment Scripts](https://github.com/nus-ncl/ctfd-deployment)
+Please see [ctfd-deployment](https://github.com/nus-ncl/ctfd-deployment) for how to deploy CTFd server and clients.
 
 CTFd now takes in an additional arguments 
 
