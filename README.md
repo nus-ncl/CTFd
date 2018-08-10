@@ -1,6 +1,6 @@
-[Original README](https://github.com/CTFd/CTFd/blob/master/README.md)
+[Original CTFd README](https://github.com/CTFd/CTFd/blob/master/README.md)
 
-[Deployment Guide](https://github.com/nus-ncl/ctfd-deployment/blob/master/Deployment_Guides/core/ctfd-core-deployment.txt)
+[Deployment](https://github.com/nus-ncl/ctfd-deployment)
 
 CTFd now takes in an additional arguments 
 
