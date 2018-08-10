@@ -2,12 +2,10 @@
 
 [Deployment Guide](https://github.com/nus-ncl/ctfd-deployment/blob/master/Deployment_Guides/core/ctfd-core-deployment.txt)
 
-**WORK-IN-PROGRESS**
-
 CTFd now takes in an additional arguments 
 
---ncl-sio-url for NCL SIO URL
---ncl-team-name for name of the NCL Team whose members are allowed to login
+- --ncl-sio-url for NCL SIO URL
+- --ncl-team-name for name of the NCL Team whose members are allowed to login
 
 ```
 uwsgi --plugin python -s /tmp/uwsgi1.sock -w 'CTFd:create_app()' --chmod-socket=666 --pidfile /tmp/ctfd1.pid --pyargv '--ncl-sio-url http://172.18.178.14:8080 --ncl-team-name ncltest01'
